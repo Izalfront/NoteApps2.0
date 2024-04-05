@@ -47,16 +47,13 @@ class HomeFragment : Fragment(R.layout.fragment_home), SearchView.OnQueryTextLis
         }
     }
 
-    private fun updateUI(note: List<Note>?){
-        if(note != null){
-            if(note.isEmpty())
-            {
-                binding.emptyNotesImage.visibility = View.GONE
-                binding.homeRecyclerView.visibility = View.VISIBLE
-            } else{
-                binding.emptyNotesImage.visibility = View.VISIBLE
-                binding.homeRecyclerView.visibility = View.GONE
-            }
+    private fun updateUI(note: List<Note>?) {
+        if (note.isNullOrEmpty()) {
+            binding.emptyNotesImage.visibility = View.VISIBLE
+            binding.homeRecyclerView.visibility = View.GONE
+        } else {
+            binding.emptyNotesImage.visibility = View.GONE
+            binding.homeRecyclerView.visibility = View.VISIBLE
         }
     }
 
