@@ -2,12 +2,13 @@ package com.example.noteapps20.fragments
 
 import android.os.Bundle
 import android.view.*
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
-import android.widget.SearchView
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.findNavController
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.noteapps20.MainActivity
 import com.example.noteapps20.R
 import com.example.noteapps20.adapter.NoteAdapter
@@ -39,6 +40,7 @@ class HomeFragment : Fragment(R.layout.fragment_home), SearchView.OnQueryTextLis
         menuHost.addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         notesViewModel = (activity as MainActivity).noteViewModel
+        setupHomeRecyclerView()
 
         binding.addNoteFab.setOnClickListener{
             it.findNavController().navigate(R.id.action_addNoteFragment_to_homeFragment)
@@ -58,5 +60,55 @@ class HomeFragment : Fragment(R.layout.fragment_home), SearchView.OnQueryTextLis
         }
     }
 
+    private fun setupHomeRecyclerView(){
+        noteAdapter = NoteAdapter()
+        binding.homeRecyclerView.apply {
+            layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+            setHasFixedSize(true)
+            adapter = noteAdapter
+        }
+
+        activity?.let {
+            notesViewModel.getAllNotes().observe(viewLifecycleOwner){ note ->
+                noteAdapter.differ.submitList(note)
+                updateUI(note)
+            }
+        }
+    }
+
+    private fun searchNote(query: String?){
+        val searchQuery = "%$query"
+
+        notesViewModel.searchNote(searchQuery).observe(this) {list ->
+        noteAdapter.differ.submitList(list)}
+    }
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        return false
+    }
+
+    override fun onQueryTextChange(newText: String?): Boolean {
+        if(newText != null){
+            searchNote(newText)
+        }
+        return true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        homeBinding = null
+    }
+
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+       menu.clear()
+        menuInflater.inflate(R.menu.home_menu, menu)
+
+        val menuSearch = menu.findItem(R.id.searchMenu).actionView as SearchView
+        menuSearch.isSubmitButtonEnabled = false
+        menuSearch.setOnQueryTextListener(this)
+    }
+
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return false
+    }
 
 }
